@@ -36,7 +36,7 @@ jobs:
     gradle -p "$PROJECT_DIR" build --no-daemon
 
       - name: Upload JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: player-join-alert
-          path: project/build/libs/*.jar
+  uses: actions/upload-artifact@v4
+  with:
+    name: player-join-alert
+    path: project/**/build/libs/*.jar
