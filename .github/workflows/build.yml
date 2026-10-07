@@ -32,17 +32,26 @@ jobs:
           echo "Looking for Gradle project..."
           find project -name settings.gradle -o -name build.gradle
 
-      - name: Configure project
+            - name: Configure project
         run: |
           PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
           echo "Project directory: $PROJECT_DIR"
 
           mkdir -p "$PROJECT_DIR/libs"
 
-          echo "Adding CurseMaven repository..."
-          sed -i '/mavenCentral()/i\        maven { name = "CurseMaven"; url = uri("https://cursemaven.com") }' "$PROJECT_DIR/settings.gradle"
+          echo "Downloading Mod Menu..."
+          curl -L \
+            "https://www.curseforge.com/api/v1/mods/308702/files/8397851/download" \
+            -o "$PROJECT_DIR/libs/modmenu.jar"
 
-          echo "Project configured."
+          echo "Mod Menu downloaded:"
+          ls -lh "$PROJECT_DIR/libs/modmenu.jar"
+
+          echo "Changing Mod Menu dependency..."
+          sed -i 's|modCompileOnly .*|modCompileOnly files("libs/modmenu.jar")|' "$PROJECT_DIR/build.gradle"
+
+          echo "Checking dependency:"
+          grep -n "modCompileOnly" "$PROJECT_DIR/build.gradle"
 
       - name: Build mod
         run: |
