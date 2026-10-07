@@ -25,18 +25,20 @@ jobs:
       - name: Extract project
         run: |
           mkdir project
-          unzip -q player-join-alert-1.21.11-yarn.zip -d project
+          ZIP=$(find . -maxdepth 1 -type f -name 'player-join-alert-*.zip' | head -n 1)
+          echo "Using ZIP: $ZIP"
+          unzip -q "$ZIP" -d project
           echo "Project files:"
-          find project -maxdepth 2 -type f
+          find project -maxdepth 3 -type f | head -100
 
-       - name: Build mod
-  run: |
-    PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
-    echo "Building from: $PROJECT_DIR"
-    gradle -p "$PROJECT_DIR" build --no-daemon
+      - name: Build mod
+        run: |
+          PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
+          echo "Building from: $PROJECT_DIR"
+          gradle -p "$PROJECT_DIR" build --no-daemon
 
       - name: Upload JAR
-  uses: actions/upload-artifact@v4
-  with:
-    name: player-join-alert
-    path: project/**/build/libs/*.jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-join-alert
+          path: project/**/build/libs/*.jar
