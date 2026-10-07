@@ -29,10 +29,11 @@ jobs:
           echo "Project files:"
           find project -maxdepth 2 -type f
 
-      - name: Build mod
-        working-directory: project
-        run: |
-          gradle build --no-daemon
+       - name: Build mod
+  run: |
+    PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
+    echo "Building from: $PROJECT_DIR"
+    gradle -p "$PROJECT_DIR" build --no-daemon
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
