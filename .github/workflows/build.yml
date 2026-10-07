@@ -30,6 +30,11 @@ jobs:
           unzip -q "$ZIP" -d project
           echo "Project files:"
           find project -maxdepth 3 -type f | head -100
+       - name: Add CurseMaven repository
+        run: |
+          SETTINGS=$(find project -name settings.gradle -type f | head -n 1)
+          echo "Settings file: $SETTINGS"
+          sed -i '/mavenCentral()/i\        maven { name = "CurseMaven"; url = uri("https://cursemaven.com") }' "$SETTINGS"
 
       - name: Build mod
         run: |
