@@ -17,7 +17,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Gradle 9.2.1
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.2.1'
@@ -28,18 +28,27 @@ jobs:
           ZIP=$(find . -maxdepth 1 -type f -name 'player-join-alert-*.zip' | head -n 1)
           echo "Using ZIP: $ZIP"
           unzip -q "$ZIP" -d project
-          echo "Project files:"
-          find project -maxdepth 3 -type f | head -100
-       - name: Add CurseMaven repository
+
+          echo "Looking for Gradle project..."
+          find project -name settings.gradle -o -name build.gradle
+
+      - name: Configure project
         run: |
-          SETTINGS=$(find project -name settings.gradle -type f | head -n 1)
-          echo "Settings file: $SETTINGS"
-          sed -i '/mavenCentral()/i\        maven { name = "CurseMaven"; url = uri("https://cursemaven.com") }' "$SETTINGS"
+          PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
+          echo "Project directory: $PROJECT_DIR"
+
+          mkdir -p "$PROJECT_DIR/libs"
+
+          echo "Adding CurseMaven repository..."
+          sed -i '/mavenCentral()/i\        maven { name = "CurseMaven"; url = uri("https://cursemaven.com") }' "$PROJECT_DIR/settings.gradle"
+
+          echo "Project configured."
 
       - name: Build mod
         run: |
           PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
           echo "Building from: $PROJECT_DIR"
+
           gradle -p "$PROJECT_DIR" build --no-daemon
 
       - name: Upload JAR
