@@ -17,18 +17,22 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Setup Gradle 9.2.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.1'
+
       - name: Extract project
         run: |
           mkdir project
           unzip -q player-join-alert-1.21.11-fixed.zip -d project
-          echo "Extracted files:"
-          find project -maxdepth 2 -type f | head -50
+          echo "Project files:"
+          find project -maxdepth 2 -type f
 
       - name: Build mod
         working-directory: project
         run: |
-          chmod +x gradlew
-          ./gradlew build --no-daemon
+          gradle build --no-daemon
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
