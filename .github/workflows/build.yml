@@ -1,0 +1,37 @@
+name: Build Minecraft Mod
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Extract project
+        run: |
+          mkdir project
+          unzip -q player-join-alert-1.21.11-fixed.zip -d project
+          echo "Extracted files:"
+          find project -maxdepth 2 -type f | head -50
+
+      - name: Build mod
+        working-directory: project
+        run: |
+          chmod +x gradlew
+          ./gradlew build --no-daemon
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-join-alert
+          path: project/build/libs/*.jar
