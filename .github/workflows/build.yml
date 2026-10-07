@@ -12,56 +12,42 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Gradle
+      - name: Setup Gradle 9.2.1
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.2.1'
 
       - name: Extract project
         run: |
+          set -e
           mkdir project
           ZIP=$(find . -maxdepth 1 -type f -name 'player-join-alert-*.zip' | head -n 1)
+          test -n "$ZIP"
           echo "Using ZIP: $ZIP"
           unzip -q "$ZIP" -d project
 
-          echo "Looking for Gradle project..."
-          find project -name settings.gradle -o -name build.gradle
-
-            - name: Configure project
+      - name: Find Gradle project
+        id: project
         run: |
+          set -e
           PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
+          test -f "$PROJECT_DIR/build.gradle"
+          echo "dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
           echo "Project directory: $PROJECT_DIR"
-
-          mkdir -p "$PROJECT_DIR/libs"
-
-          echo "Downloading Mod Menu..."
-          curl -L \
-            "https://www.curseforge.com/api/v1/mods/308702/files/8397851/download" \
-            -o "$PROJECT_DIR/libs/modmenu.jar"
-
-          echo "Mod Menu downloaded:"
-          ls -lh "$PROJECT_DIR/libs/modmenu.jar"
-
-          echo "Changing Mod Menu dependency..."
-          sed -i 's|modCompileOnly .*|modCompileOnly files("libs/modmenu.jar")|' "$PROJECT_DIR/build.gradle"
-
-          echo "Checking dependency:"
-          grep -n "modCompileOnly" "$PROJECT_DIR/build.gradle"
 
       - name: Build mod
         run: |
-          PROJECT_DIR=$(dirname "$(find project -name settings.gradle -type f | head -n 1)")
-          echo "Building from: $PROJECT_DIR"
-
-          gradle -p "$PROJECT_DIR" build --no-daemon
+          set -e
+          gradle -p "${{ steps.project.outputs.dir }}" clean build --no-daemon
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: player-join-alert
           path: project/**/build/libs/*.jar
+          if-no-files-found: error
